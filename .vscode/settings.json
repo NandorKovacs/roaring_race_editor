@@ -1,0 +1,4 @@
+{
+  "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
+  "C_Cpp.default.compileCommands": "/home/nandor/prg/gtk/cpp/build/compile_commands.json"
+}
