@@ -5,15 +5,15 @@
 
 #include "window.h"
 
-Application::Application()
+MyApplication::MyApplication()
     : Gtk::Application("net.roaringmind.roaring_race_editor",
                        Gio::Application::Flags::HANDLES_OPEN) {}
 
-Glib::RefPtr<Application> Application::create() {
-  return Glib::make_refptr_for_instance<Application>(new Application());
+Glib::RefPtr<MyApplication> MyApplication::create() {
+  return Glib::make_refptr_for_instance<MyApplication>(new MyApplication());
 }
 
-Window* Application::create_appwindow() {
+Window* MyApplication::create_appwindow() {
   Window* appwindow = Window::create();
 
   // Make sure that the application runs for as long this window is still open.
@@ -30,7 +30,7 @@ Window* Application::create_appwindow() {
   return appwindow;
 }
 
-void Application::on_activate() {
+void MyApplication::on_activate() {
   try {
     // The application has been started, so let's show a window.
     Window* appwindow = create_appwindow();

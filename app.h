@@ -5,12 +5,12 @@
 
 class Window;
 
-class Application : public Gtk::Application {
+class MyApplication : public Gtk::Application {
  public:
-  static Glib::RefPtr<Application> create();
+  static Glib::RefPtr<MyApplication> create();
 
  protected:
-  Application();
+  MyApplication();
   // Override default signal handlers:
   void on_activate() override;
 

@@ -6,11 +6,17 @@
     <property name="default-height">400</property>
     <property name="hide-on-close">True</property>
     <child>
-      <object class="GtkBox" id="content_box">
-        <property name="orientation">vertical</property>
-        <child>
-          <object class="GtkStack" id="stack"/>
-        </child>
+      <object class="GtkPaned" id="content_box">
+        <property name="start-child">
+          <object class="GtkButton">
+            <property name="label">Hello, left</property>
+          </object>
+        </property>
+        <property name="end-child">
+          <object class="GtkButton">
+            <property name="label">Hello, right</property>
+          </object>
+        </property>
       </object>
     </child>
   </object>

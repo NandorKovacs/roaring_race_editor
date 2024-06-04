@@ -13,4 +13,4 @@ class Window : public Gtk::ApplicationWindow {
   Glib::RefPtr<Gtk::Builder> m_refBuilder;
 };
 
-#endif // ROARING_RACE_WINDOW
+#endif /* ROARING_RACE_WINDOW */
