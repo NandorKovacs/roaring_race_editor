@@ -43,7 +43,7 @@
               </object>
             </child>
             <child>
-              <object class="GtkSeparator" id="drawing_area">
+              <object class="GtkSeparator" id="map-editor">
                 <property name="orientation">horizontal</property>
               </object>
             </child>
