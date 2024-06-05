@@ -7,14 +7,50 @@
     <property name="hide-on-close">True</property>
     <child>
       <object class="GtkPaned" id="content_box">
+        <property name="position">50</property>
         <property name="start-child">
-          <object class="GtkButton">
-            <property name="label">Hello, left</property>
+          <object class="GtkListBox" id="list">
           </object>
         </property>
         <property name="end-child">
-          <object class="GtkButton">
-            <property name="label">Hello, right</property>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">horizontal</property>
+                <property name="spacing">25</property>
+                <child>
+                  <object class="GtkButton">
+                    <property name="label">A</property>
+                    <property name="height-request">50</property>
+                    <property name="width-request">50</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <property name="label">B</property>
+                    <property name="height-request">50</property>
+                    <property name="width-request">50</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <property name="label">C</property>
+                    <property name="height-request">50</property>
+                    <property name="width-request">50</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator" id="drawing_area">
+                <property name="orientation">horizontal</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkDrawingArea">
+              </object>
+            </child>
           </object>
         </property>
       </object>
