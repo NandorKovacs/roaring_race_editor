@@ -4,7 +4,7 @@ gtkdep = dependency('gtkmm-4.0')
 
 gnome = import('gnome')
 
-cc_resources = ['window.cc', 'app.cc', 'main.cc', 'editor.cc']
+cc_resources = ['main.cc', 'editor.cc']
 
 ui_resources = gnome.compile_resources('resources', 'resources/resources.gresources.xml', source_dir : 'resources')
 

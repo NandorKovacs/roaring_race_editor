@@ -9,6 +9,18 @@ Glib::RefPtr<Editor> Editor::create() {
 }
 
 void Editor::on_activate() {
-  Glib::RefPtr<Gtk::Builder> builder = Gtk::Builder::create_from_resource("/resources/ui.xml");
-  
+  EditorWindow* window = EditorWindow::create();
+  add_window(*window);
+  window->signal_hide().connect([window]() { delete window; });
+  window->present();
+}
+
+EditorWindow::EditorWindow(BaseObjectType* cobject,
+                           const Glib::RefPtr<Gtk::Builder>& builder)
+    : Gtk::ApplicationWindow(cobject), builder(builder) {}
+
+EditorWindow* EditorWindow::create() {
+  Glib::RefPtr<Gtk::Builder> new_builder = Gtk::Builder::create_from_resource("/resources/ui.xml");
+
+  return Gtk::Builder::get_widget_derived<EditorWindow>(new_builder, "roaring_race_editor");
 }
