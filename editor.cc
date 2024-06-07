@@ -40,5 +40,10 @@ MapEditor* MapEditor::create(Glib::RefPtr<Gtk::Builder> builder) {
 
 void MapEditor::draw(const Cairo::RefPtr<Cairo::Context>& cr, int width,
                      int height) {
-  cr->arc(width/2, height/2, 100, 0, 2 * M_PI);
+  cr->set_line_width(10);
+  cr->set_source_rgb(1,0,0);
+  cr->move_to(width/2, height/2);
+  cr->line_to(width/2 + 50, height/2 + 50);
+  cr->stroke();
+  std::cout << "draw" << std::endl;
 }
