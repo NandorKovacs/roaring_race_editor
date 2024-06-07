@@ -31,7 +31,6 @@ EditorWindow* EditorWindow::create() {
 }
 
 MapEditor::MapEditor(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& builder) : Gtk::DrawingArea(cobject) {  
-  std::cout << GTK_IS_DRAWING_AREA(this) << std::endl;
   set_draw_func(sigc::mem_fun(*this, &MapEditor::draw));
 }
 
