@@ -1,7 +1,8 @@
 #include "editor.h"
 
-#include <iostream>
 #include <gtkmm.h>
+
+#include <iostream>
 
 Editor::Editor() : Gtk::Application("net.roaringmind.roaring_race_editor") {}
 
@@ -18,9 +19,9 @@ void Editor::on_activate() {
 
 EditorWindow::EditorWindow(BaseObjectType* cobject,
                            const Glib::RefPtr<Gtk::Builder>& builder)
-    : Gtk::ApplicationWindow(cobject), builder(builder) {
-  editor = MapEditor::create(builder);
-}
+    : Gtk::ApplicationWindow(cobject),
+      builder(builder),
+      editor{MapEditor::create(builder)} {}
 
 EditorWindow* EditorWindow::create() {
   Glib::RefPtr<Gtk::Builder> new_builder =
@@ -30,7 +31,9 @@ EditorWindow* EditorWindow::create() {
                                                         "roaring_race_editor");
 }
 
-MapEditor::MapEditor(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& builder) : Gtk::DrawingArea(cobject) {  
+MapEditor::MapEditor(BaseObjectType* cobject,
+                     const Glib::RefPtr<Gtk::Builder>& builder)
+    : Gtk::DrawingArea(cobject) {
   set_draw_func(sigc::mem_fun(*this, &MapEditor::draw));
 }
 
@@ -41,9 +44,9 @@ MapEditor* MapEditor::create(Glib::RefPtr<Gtk::Builder> builder) {
 void MapEditor::draw(const Cairo::RefPtr<Cairo::Context>& cr, int width,
                      int height) {
   cr->set_line_width(10);
-  cr->set_source_rgb(1,0,0);
-  cr->move_to(width/2, height/2);
-  cr->line_to(width/2 + 50, height/2 + 50);
+  cr->set_source_rgb(1, 0, 0);
+  cr->move_to(width / 2, height / 2);
+  cr->line_to(width / 2 + 50, height / 2 + 50);
   cr->stroke();
-  std::cout << "draw" << std::endl;
+  std::cout << "draw " << width << " " << height << std::endl;
 }
