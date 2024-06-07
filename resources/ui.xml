@@ -49,6 +49,7 @@
             </child>
             <child>
               <object class="GtkDrawingArea" id="map-editor">
+                <property name="vexpand">True</property>
               </object>
             </child>
           </object>
