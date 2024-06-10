@@ -1,4 +1,4 @@
 {
   "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
-  "C_Cpp.default.compileCommands": "/home/nandor/prg/gtk/roaring_race_editor/build/compile_commands.json"
+  "C_Cpp.default.compileCommands": "build/compile_commands.json"
 }
