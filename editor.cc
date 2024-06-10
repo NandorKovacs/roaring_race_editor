@@ -33,8 +33,10 @@ EditorWindow* EditorWindow::create() {
 
 MapEditor::MapEditor(BaseObjectType* cobject,
                      const Glib::RefPtr<Gtk::Builder>& builder)
-    : Gtk::DrawingArea(cobject) {
+    : Gtk::DrawingArea(cobject), handler() {
   set_draw_func(sigc::mem_fun(*this, &MapEditor::draw));
+  // crashes here
+  handler->attach(this);
 }
 
 MapEditor* MapEditor::create(Glib::RefPtr<Gtk::Builder> builder) {
@@ -49,4 +51,25 @@ void MapEditor::draw(const Cairo::RefPtr<Cairo::Context>& cr, int width,
   cr->line_to(width / 2 + 50, height / 2 + 50);
   cr->stroke();
   std::cout << "draw " << width << " " << height << std::endl;
+}
+
+EditorEventHandler::EditorEventHandler()
+    : gesture_click(Gtk::GestureClick::create()),
+      key_event(Gtk::EventControllerKey::create()) {
+  gesture_click->signal_pressed().connect(sigc::mem_fun(*this, &EditorEventHandler::click));
+  key_event->signal_key_pressed().connect(sigc::mem_fun(*this, &EditorEventHandler::key_press), false);
+}
+
+void EditorEventHandler::attach(MapEditor* editor) {
+  editor->add_controller(gesture_click);
+  editor->add_controller(key_event);
+}
+
+void EditorEventHandler::click(gint n_press, gdouble x, gdouble y) {
+  std::cout << "haha clicked" << std::endl;
+}
+
+bool EditorEventHandler::key_press(guint keyval, guint, Gdk::ModifierType state) {
+  std::cout << "haha pressed" << std::endl;
+  return true;
 }
