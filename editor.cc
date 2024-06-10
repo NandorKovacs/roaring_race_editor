@@ -42,6 +42,7 @@ MapEditor::MapEditor(BaseObjectType* cobject,
   gesture_click->signal_pressed().connect(
       sigc::mem_fun(*this, &MapEditor::click));
   add_controller(gesture_click);
+
 }
 
 MapEditor* MapEditor::create(Glib::RefPtr<Gtk::Builder> builder) {
