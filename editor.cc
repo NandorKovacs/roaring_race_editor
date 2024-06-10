@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#include "geometry.h"
+
 Editor::Editor() : Gtk::Application("net.roaringmind.roaring_race_editor") {}
 
 Glib::RefPtr<Editor> Editor::create() {
@@ -33,8 +35,13 @@ EditorWindow* EditorWindow::create() {
 
 MapEditor::MapEditor(BaseObjectType* cobject,
                      const Glib::RefPtr<Gtk::Builder>& builder)
-    : Gtk::DrawingArea(cobject) {
+    : Gtk::DrawingArea(cobject),
+      gesture_click(Gtk::GestureClick::create()),
+      key_event(Gtk::EventControllerKey::create()) {
   set_draw_func(sigc::mem_fun(*this, &MapEditor::draw));
+  gesture_click->signal_pressed().connect(
+      sigc::mem_fun(*this, &MapEditor::click));
+  add_controller(gesture_click);
 }
 
 MapEditor* MapEditor::create(Glib::RefPtr<Gtk::Builder> builder) {
@@ -45,8 +52,14 @@ void MapEditor::draw(const Cairo::RefPtr<Cairo::Context>& cr, int width,
                      int height) {
   cr->set_line_width(10);
   cr->set_source_rgb(1, 0, 0);
-  cr->move_to(width / 2, height / 2);
-  cr->line_to(width / 2 + 50, height / 2 + 50);
+  // cr->move_to(width / 2, height / 2);
+  // cr->line_to(width / 2 + 50, height / 2 + 50);
+
+  Circle* c = new Circle(width / 2, height / 2, 100.0);
+  c->draw(cr, width, height);
   cr->stroke();
-  std::cout << "draw " << width << " " << height << std::endl;
+}
+
+void MapEditor::click(gint n_press, gdouble x, gdouble y) {
+  std::cout << "clicked" << std::endl;
 }
