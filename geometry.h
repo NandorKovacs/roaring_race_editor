@@ -1,6 +1,8 @@
 #ifndef ROARING_EDITOR_GEOMETRY_H
 #define ROARING_EDITOR_GEOMETRY_H
+
 #include <gtkmm.h>
+#include <unordered_set>
 
 class Geometry {
  public:

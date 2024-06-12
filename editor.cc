@@ -42,7 +42,6 @@ MapEditor::MapEditor(BaseObjectType* cobject,
   gesture_click->signal_pressed().connect(
       sigc::mem_fun(*this, &MapEditor::click));
   add_controller(gesture_click);
-
 }
 
 MapEditor* MapEditor::create(Glib::RefPtr<Gtk::Builder> builder) {
@@ -63,4 +62,25 @@ void MapEditor::draw(const Cairo::RefPtr<Cairo::Context>& cr, int width,
 
 void MapEditor::click(gint n_press, gdouble x, gdouble y) {
   std::cout << "clicked" << std::endl;
+}
+
+DrawingState::DrawingState() : t(IDLE), state(ToolState::create(t)) {}
+
+ToolState* ToolState::create(Tool t) {
+  switch (t) {
+    case IDLE:
+      return new IdleState();
+
+    case CIRCLE:
+      return new CircleState();
+  }
+}
+
+Tool DrawingState::current_tool() {
+  return t;
+}
+
+void DrawingState::set_tool(Tool t) {
+  // delete state;
+  state = ToolState::create(t);
 }
