@@ -19,6 +19,7 @@ class ToolState {
   virtual void click(Point p) = 0;
   Tool type();
   virtual ~ToolState() = default;
+
  protected:
   ToolState(Tool t);
   Tool t;
@@ -57,6 +58,14 @@ class MapEditor : public Gtk::DrawingArea {
   std::unordered_set<Geometry*> ghosts;
 };
 
+class ToolButton : public Gtk::Button {
+ public:
+  ToolButton(BaseObjectType* cobject,
+             const Glib::RefPtr<Gtk::Builder>& builder);
+  static ToolButton* create(Glib::RefPtr<Gtk::Builder> builder,
+                            const Glib::ustring& id);
+};
+
 class EditorWindow : public Gtk::ApplicationWindow {
  public:
   EditorWindow(BaseObjectType* cobject,
@@ -68,6 +77,7 @@ class EditorWindow : public Gtk::ApplicationWindow {
 
  private:
   MapEditor* editor;
+  std::vector<ToolButton*> tool_buttons;
 };
 
 class Editor : public Gtk::Application {

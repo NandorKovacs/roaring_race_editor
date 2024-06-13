@@ -20,11 +20,22 @@ void Editor::on_activate() {
   window->present();
 }
 
+const std::vector<std::pair<std::string, Tool>> BUTTON_IDS = {
+    {"tool-select", SELECT}, {"tool-circle", CIRCLE}};
+
 EditorWindow::EditorWindow(BaseObjectType* cobject,
                            const Glib::RefPtr<Gtk::Builder>& builder)
     : Gtk::ApplicationWindow(cobject),
       builder(builder),
-      editor{MapEditor::create(builder)} {}
+      editor{MapEditor::create(builder)},
+      tool_buttons({}) {
+  auto change_tool_ptr = std::mem_fn(&MapEditor::change_tool);
+  for (auto [id, tool] : BUTTON_IDS) {
+    auto change_tool_bind = std::bind(change_tool_ptr, editor, tool);
+    tool_buttons.push_back(ToolButton::create(builder, id));
+    tool_buttons.back()->signal_clicked().connect(change_tool_bind);
+  }
+}
 
 EditorWindow* EditorWindow::create() {
   Glib::RefPtr<Gtk::Builder> new_builder =
@@ -48,6 +59,15 @@ MapEditor::MapEditor(BaseObjectType* cobject,
   add_controller(gesture_click);
 }
 
+ToolButton::ToolButton(BaseObjectType* cobject,
+                       const Glib::RefPtr<Gtk::Builder>& builder)
+    : Gtk::Button(cobject) {}
+
+ToolButton* ToolButton::create(Glib::RefPtr<Gtk::Builder> builder,
+                               const Glib::ustring& id) {
+  return Gtk::Builder::get_widget_derived<ToolButton>(builder, id);
+}
+
 MapEditor* MapEditor::create(Glib::RefPtr<Gtk::Builder> builder) {
   return Gtk::Builder::get_widget_derived<MapEditor>(builder, "map-editor");
 }
@@ -56,8 +76,6 @@ void MapEditor::draw(const Cairo::RefPtr<Cairo::Context>& cr, int width,
                      int height) {
   cr->set_line_width(10);
   cr->set_source_rgb(1, 0, 0);
-  // cr->move_to(width / 2, height / 2);
-  // cr->line_to(width / 2 + 50, height / 2 + 50);
 
   Circle* c = new Circle(width / 2, height / 2, 100.0);
   c->draw(cr, width, height);
@@ -72,10 +90,12 @@ void MapEditor::change_tool(Tool t) {
   delete tool_state;
   switch (t) {
     case SELECT:
+      std::cout << "changed to select mode" << std::endl;
       tool_state = new SelectState();
       break;
 
     case CIRCLE:
+      std::cout << "changed to circle mode" << std::endl;
       tool_state = new CircleState();
       break;
 
