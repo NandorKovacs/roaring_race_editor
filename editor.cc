@@ -2,6 +2,7 @@
 
 #include <gtkmm.h>
 
+#include <cassert>
 #include <iostream>
 
 #include "geometry.h"
@@ -37,7 +38,10 @@ MapEditor::MapEditor(BaseObjectType* cobject,
                      const Glib::RefPtr<Gtk::Builder>& builder)
     : Gtk::DrawingArea(cobject),
       gesture_click(Gtk::GestureClick::create()),
-      key_event(Gtk::EventControllerKey::create()) {
+      key_event(Gtk::EventControllerKey::create()),
+      tool_state(new SelectState()),
+      objects({}),
+      ghosts({}) {
   set_draw_func(sigc::mem_fun(*this, &MapEditor::draw));
   gesture_click->signal_pressed().connect(
       sigc::mem_fun(*this, &MapEditor::click));
@@ -61,26 +65,37 @@ void MapEditor::draw(const Cairo::RefPtr<Cairo::Context>& cr, int width,
 }
 
 void MapEditor::click(gint n_press, gdouble x, gdouble y) {
-  std::cout << "clicked" << std::endl;
+  tool_state->click({x, y});
 }
 
-DrawingState::DrawingState() : t(IDLE), state(ToolState::create(t)) {}
-
-ToolState* ToolState::create(Tool t) {
+void MapEditor::change_tool(Tool t) {
+  // delete tool_state;
   switch (t) {
-    case IDLE:
-      return new IdleState();
+    case SELECT:
+      tool_state = new SelectState();
+      break;
 
     case CIRCLE:
-      return new CircleState();
+      tool_state = new CircleState();
+      break;
+
+    default:
+      std::cerr << "unknown tool" << std::endl;
+      assert(false);
+      break;
   }
 }
 
-Tool DrawingState::current_tool() {
-  return t;
+ToolState::ToolState(Tool t) : t(t) {}
+Tool ToolState::type() { return t; }
+
+SelectState::SelectState() : ToolState(SELECT) {}
+CircleState::CircleState() : ToolState(CIRCLE) {}
+
+void SelectState::click(Point p) {
+  std::cout << "Select: " << p.first << " " << p.second << std::endl;
 }
 
-void DrawingState::set_tool(Tool t) {
-  // delete state;
-  state = ToolState::create(t);
+void CircleState::click(Point p) {
+  std::cout << "Circle: " << p.first << " " << p.second << std::endl;
 }

@@ -2,45 +2,39 @@
 #define ROARING_EDITOR_H
 
 #include <gtkmm.h>
-#include "geometry.h"
+
 #include <unordered_set>
+
+#include "geometry.h"
 
 typedef std::pair<double, double> Point;
 
 enum Tool {
-  IDLE, CIRCLE,
+  SELECT,
+  CIRCLE,
 };
 
 class ToolState {
  public:
-  static ToolState* create(Tool t);
-  virtual void next_click() = 0;
+  virtual void click(Point p) = 0;
+  Tool type();
+  virtual ~ToolState() = default;
+ protected:
+  ToolState(Tool t);
+  Tool t;
 };
 
-class IdleState : public ToolState {
+class SelectState : public ToolState {
  public:
-  void next_click() {};
+  SelectState();
+  void click(Point p);
 };
 
 class CircleState : public ToolState {
  public:
-  void next_click();
- private:
-  std::vector<Point> pts = {};
+  CircleState();
+  void click(Point p);
 };
-
-class DrawingState {
- public:
-  DrawingState();
-  Tool current_tool();
-  void set_tool(Tool t);
-
- private:
-  Tool t;
-  ToolState* state;
-};
-
-
 
 class MapEditor : public Gtk::DrawingArea {
  public:
@@ -50,13 +44,14 @@ class MapEditor : public Gtk::DrawingArea {
 
   void draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height);
 
+  void change_tool(Tool t);
+
  private:
   Glib::RefPtr<Gtk::GestureClick> gesture_click;
   void click(gint n_press, gdouble x, gdouble y);
   Glib::RefPtr<Gtk::EventControllerKey> key_event;
 
-
-  DrawingState state;
+  ToolState* tool_state;
 
   std::unordered_set<Geometry*> objects;
   std::unordered_set<Geometry*> ghosts;
@@ -84,4 +79,4 @@ class Editor : public Gtk::Application {
   void on_activate() override;
 };
 
-#endif // ROARING_EDITOR_H
+#endif  // ROARING_EDITOR_H
