@@ -69,7 +69,7 @@ void MapEditor::click(gint n_press, gdouble x, gdouble y) {
 }
 
 void MapEditor::change_tool(Tool t) {
-  // delete tool_state;
+  delete tool_state;
   switch (t) {
     case SELECT:
       tool_state = new SelectState();
