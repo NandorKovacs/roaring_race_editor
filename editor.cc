@@ -48,15 +48,33 @@ EditorWindow* EditorWindow::create() {
 MapEditor::MapEditor(BaseObjectType* cobject,
                      const Glib::RefPtr<Gtk::Builder>& builder)
     : Gtk::DrawingArea(cobject),
-      gesture_click(Gtk::GestureClick::create()),
-      key_event(Gtk::EventControllerKey::create()),
+      map(),
+      view(),
       tool_state(new SelectState()),
-      objects({}),
-      ghosts({}) {
+      gesture_click(Gtk::GestureClick::create()),
+      gesture_drag(Gtk::GestureDrag::create()) {
+  map.insert(new Circle(0, 0, 100.0));
+
   set_draw_func(sigc::mem_fun(*this, &MapEditor::draw));
-  gesture_click->signal_pressed().connect(
-      sigc::mem_fun(*this, &MapEditor::click));
-  add_controller(gesture_click);
+  signal_resize().connect([this](double width, double height) {
+    this->width = width;
+    this->height = height;
+  });
+
+  {
+    gesture_click->signal_pressed().connect(
+        sigc::mem_fun(*this, &MapEditor::click));
+    add_controller(gesture_click);
+  }  // gesture click
+  {
+    gesture_drag->signal_drag_begin().connect(
+        sigc::mem_fun(*this, &MapEditor::drag_start));
+    gesture_drag->signal_drag_update().connect(
+        sigc::mem_fun(*this, &MapEditor::drag_update));
+    gesture_drag->signal_drag_end().connect(
+        sigc::mem_fun(*this, &MapEditor::drag_end));
+    add_controller(gesture_drag);
+  }
 }
 
 ToolButton::ToolButton(BaseObjectType* cobject,
@@ -77,13 +95,36 @@ void MapEditor::draw(const Cairo::RefPtr<Cairo::Context>& cr, int width,
   cr->set_line_width(10);
   cr->set_source_rgb(1, 0, 0);
 
-  Circle* c = new Circle(width / 2, height / 2, 100.0);
-  c->draw(cr, width, height);
+  // maybe reimplement with cairo matrixes if they exist?
+  // pro: less hacky
+  // con: this way, the translation happens in MapView for drawing, and for
+  // clicking too
+  std::function<Point(Point)> fnc = std::bind(
+      &MapView::map_to_screen, &view, std::placeholders::_1, width, height);
+
+  for (auto it = map.begin(); it != map.end(); ++it) {
+    (**it).draw(cr, fnc);
+  }
+
   cr->stroke();
 }
 
 void MapEditor::click(gint n_press, gdouble x, gdouble y) {
-  tool_state->click({x, y});
+  tool_state->click(view.screen_to_map({x, y}, width, height));
+}
+
+void MapEditor::drag_start(gdouble x, gdouble y) {
+  std::cout << "start: " << x << " " << y << std::endl;
+}
+
+void MapEditor::drag_update(gdouble x, gdouble y) {
+  // std::cout << "update: " << x << " " << y << std::endl;
+  view.drag_update(view.screen_to_map({x, y}, width, height));
+}
+
+void MapEditor::drag_end(gdouble x, gdouble y) {
+  std::cout << "end: " << x << " " << y << std::endl;
+  view.drag_end(view.screen_to_map({x, y}, width, height));
 }
 
 void MapEditor::change_tool(Tool t) {
@@ -113,9 +154,33 @@ SelectState::SelectState() : ToolState(SELECT) {}
 CircleState::CircleState() : ToolState(CIRCLE) {}
 
 void SelectState::click(Point p) {
-  std::cout << "Select: " << p.first << " " << p.second << std::endl;
+  std::cout << "Select: " << p.x << " " << p.y << std::endl;
 }
 
 void CircleState::click(Point p) {
-  std::cout << "Circle: " << p.first << " " << p.second << std::endl;
+  std::cout << "Circle: " << p.x << " " << p.y << std::endl;
+}
+
+MapView::MapView() : translate({0, 0}), zoom(1), delta({0}) {}
+
+Point MapView::map_to_screen(Point p, double width, double height) {
+  Point center = {width / 2, height / 2};
+  return center - ((p - translate) * zoom);
+}
+
+Point MapView::screen_to_map(Point p, double width, double height) {
+  Point center = Point{width / 2, height / 2};
+  Point res = (center - p) / zoom + translate;
+  return {res.x * -1, res.y};
+}
+
+void MapView::drag_update(Point p) {
+  delta = p;
+  std::cout << p.x << " " << p.y << std::endl;
+}
+
+void MapView::drag_end(Point p) {
+  delta = {0};
+  translate = translate + p;
+  
 }

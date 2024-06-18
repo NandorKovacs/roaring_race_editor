@@ -6,8 +6,7 @@
 #include <unordered_set>
 
 #include "geometry.h"
-
-typedef std::pair<double, double> Point;
+#include "map.h"
 
 enum Tool {
   SELECT,
@@ -37,25 +36,50 @@ class CircleState : public ToolState {
   void click(Point p);
 };
 
+class MapView {
+ public:
+  MapView();
+
+  Point map_to_screen(Point p, double width, double height);
+  Point screen_to_map(Point p, double width, double height);
+
+  void drag_update(Point p);
+  void drag_end(Point p);
+
+ private:
+  Point translate;
+  double zoom;
+
+  Point delta;
+};
+
 class MapEditor : public Gtk::DrawingArea {
  public:
   MapEditor(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& builder);
 
   static MapEditor* create(Glib::RefPtr<Gtk::Builder> builder);
 
-  void draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height);
-
   void change_tool(Tool t);
 
  private:
-  Glib::RefPtr<Gtk::GestureClick> gesture_click;
-  void click(gint n_press, gdouble x, gdouble y);
-  Glib::RefPtr<Gtk::EventControllerKey> key_event;
+  Map map;
+  MapView view;
+  double height, width;
+
 
   ToolState* tool_state;
 
-  std::unordered_set<Geometry*> objects;
-  std::unordered_set<Geometry*> ghosts;
+  // gtk signals
+
+  void draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height);
+
+  Glib::RefPtr<Gtk::GestureClick> gesture_click;
+  void click(gint n_press, gdouble x, gdouble y);
+
+  Glib::RefPtr<Gtk::GestureDrag> gesture_drag;
+  void drag_start(double x, double y);
+  void drag_update(double x, double y);
+  void drag_end(double x, double y);
 };
 
 class ToolButton : public Gtk::Button {
