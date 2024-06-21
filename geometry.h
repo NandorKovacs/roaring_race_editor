@@ -15,6 +15,7 @@ struct Point {
   Point operator/(double d);
   Point operator+(Point p);
   Point operator-(Point p);
+  friend std::ostream& operator<<(std::ostream& os, Point& point);
 };
 
 

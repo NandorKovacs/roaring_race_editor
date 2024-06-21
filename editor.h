@@ -43,6 +43,7 @@ class MapView {
   Point map_to_screen(Point p, double width, double height);
   Point screen_to_map(Point p, double width, double height);
 
+  void drag_start();
   void drag_update(Point p);
   void drag_end(Point p);
 
@@ -50,7 +51,7 @@ class MapView {
   Point translate;
   double zoom;
 
-  Point delta;
+  Point old;
 };
 
 class MapEditor : public Gtk::DrawingArea {
