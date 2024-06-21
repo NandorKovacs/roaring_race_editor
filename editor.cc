@@ -7,6 +7,8 @@
 
 #include "geometry.h"
 
+// Editor
+
 Editor::Editor() : Gtk::Application("net.roaringmind.roaring_race_editor") {}
 
 Glib::RefPtr<Editor> Editor::create() {
@@ -19,6 +21,8 @@ void Editor::on_activate() {
   window->signal_hide().connect([window]() { delete window; });
   window->present();
 }
+
+// EditorWindow
 
 const std::vector<std::pair<std::string, Tool>> BUTTON_IDS = {
     {"tool-select", SELECT}, {"tool-circle", CIRCLE}};
@@ -44,6 +48,8 @@ EditorWindow* EditorWindow::create() {
   return Gtk::Builder::get_widget_derived<EditorWindow>(new_builder,
                                                         "roaring_race_editor");
 }
+
+// MapEditor
 
 MapEditor::MapEditor(BaseObjectType* cobject,
                      const Glib::RefPtr<Gtk::Builder>& builder)
@@ -77,15 +83,6 @@ MapEditor::MapEditor(BaseObjectType* cobject,
   }
 }
 
-ToolButton::ToolButton(BaseObjectType* cobject,
-                       const Glib::RefPtr<Gtk::Builder>& builder)
-    : Gtk::Button(cobject) {}
-
-ToolButton* ToolButton::create(Glib::RefPtr<Gtk::Builder> builder,
-                               const Glib::ustring& id) {
-  return Gtk::Builder::get_widget_derived<ToolButton>(builder, id);
-}
-
 MapEditor* MapEditor::create(Glib::RefPtr<Gtk::Builder> builder) {
   return Gtk::Builder::get_widget_derived<MapEditor>(builder, "map-editor");
 }
@@ -114,17 +111,17 @@ void MapEditor::click(gint n_press, gdouble x, gdouble y) {
 }
 
 void MapEditor::drag_start(gdouble x, gdouble y) {
-  std::cout << "start: " << x << " " << y << std::endl;
+  view.drag_start();
 }
 
 void MapEditor::drag_update(gdouble x, gdouble y) {
-  // std::cout << "update: " << x << " " << y << std::endl;
-  view.drag_update(view.screen_to_map({x, y}, width, height));
+  view.drag_update({x,y});
+  queue_draw();
 }
 
 void MapEditor::drag_end(gdouble x, gdouble y) {
-  std::cout << "end: " << x << " " << y << std::endl;
-  view.drag_end(view.screen_to_map({x, y}, width, height));
+  view.drag_end({x,y});
+  queue_draw();
 }
 
 void MapEditor::change_tool(Tool t) {
@@ -147,6 +144,19 @@ void MapEditor::change_tool(Tool t) {
   }
 }
 
+// ToolButton
+
+ToolButton::ToolButton(BaseObjectType* cobject,
+                       const Glib::RefPtr<Gtk::Builder>& builder)
+    : Gtk::Button(cobject) {}
+
+ToolButton* ToolButton::create(Glib::RefPtr<Gtk::Builder> builder,
+                               const Glib::ustring& id) {
+  return Gtk::Builder::get_widget_derived<ToolButton>(builder, id);
+}
+
+// ToolState
+
 ToolState::ToolState(Tool t) : t(t) {}
 Tool ToolState::type() { return t; }
 
@@ -161,7 +171,9 @@ void CircleState::click(Point p) {
   std::cout << "Circle: " << p.x << " " << p.y << std::endl;
 }
 
-MapView::MapView() : translate({0, 0}), zoom(1), delta({0}) {}
+// MapView
+
+MapView::MapView() : translate({0, 0}), zoom(1), old({0}) {}
 
 Point MapView::map_to_screen(Point p, double width, double height) {
   Point center = {width / 2, height / 2};
@@ -174,13 +186,15 @@ Point MapView::screen_to_map(Point p, double width, double height) {
   return {res.x * -1, res.y};
 }
 
+void MapView::drag_start() {
+  old = translate;
+}
+
 void MapView::drag_update(Point p) {
-  delta = p;
-  std::cout << p.x << " " << p.y << std::endl;
+  translate = old + p / zoom;
 }
 
 void MapView::drag_end(Point p) {
-  delta = {0};
-  translate = translate + p;
-  
+  translate = old + p / zoom;
+  old = {0};
 }
