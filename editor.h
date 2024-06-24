@@ -46,6 +46,7 @@ class MapView {
   void drag_start();
   void drag_update(Point p);
   void drag_end(Point p);
+  Point get_drag_start();
 
  private:
   Point translate;
