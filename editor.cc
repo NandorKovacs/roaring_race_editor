@@ -86,15 +86,15 @@ void MapEditor::draw(const Cairo::RefPtr<Cairo::Context>& cr, int width,
   cr->set_line_width(10);
   cr->set_source_rgb(1, 0, 0);
 
-  // maybe reimplement with cairo matrixes if they exist?
-  // pro: less hacky
-  // con: this way, the translation happens in MapView for drawing, and for
-  // clicking too
-  std::function<Point(Point)> fnc = std::bind(
-      &MapView::map_to_screen, &view, std::placeholders::_1, width, height);
+  Cairo::Matrix mx = cr->get_matrix();
+  Point translate = view.get_translate();
+  double zoom = view.get_zoom();
+  mx.translate(translate.x + width/2, translate.y + height / 2);
+  mx.scale(zoom, zoom);
+  cr->set_matrix(mx);
 
   for (auto it = map.begin(); it != map.end(); ++it) {
-    (**it).draw(cr, fnc);
+    (**it).draw(cr);
   }
 
   cr->stroke();
@@ -199,4 +199,12 @@ void MapView::drag_end(Point p) {
 
 Point MapView::get_drag_start() {
   return old;
+}
+
+Point MapView::get_translate() {
+  return translate;
+}
+
+double MapView::get_zoom() {
+  return zoom;
 }

@@ -43,6 +43,9 @@ class MapView {
   Point map_to_screen(Point p, double width, double height);
   Point screen_to_map(Point p, double width, double height);
 
+  Point get_translate();
+  double get_zoom();
+
   void drag_start();
   void drag_update(Point p);
   void drag_end(Point p);
