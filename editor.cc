@@ -57,7 +57,6 @@ MapEditor::MapEditor(BaseObjectType* cobject,
       map(),
       view(),
       tool_state(new SelectState()),
-      gesture_click(Gtk::GestureClick::create()),
       gesture_drag(Gtk::GestureDrag::create()) {
   map.insert(new Circle(0, 0, 100.0));
 
@@ -67,11 +66,6 @@ MapEditor::MapEditor(BaseObjectType* cobject,
     this->height = height;
   });
 
-  {
-    gesture_click->signal_pressed().connect(
-        sigc::mem_fun(*this, &MapEditor::click));
-    add_controller(gesture_click);
-  }  // gesture click
   {
     gesture_drag->signal_drag_begin().connect(
         sigc::mem_fun(*this, &MapEditor::drag_start));
@@ -122,6 +116,10 @@ void MapEditor::drag_update(gdouble x, gdouble y) {
 void MapEditor::drag_end(gdouble x, gdouble y) {
   view.drag_end({x,y});
   queue_draw();
+  if (std::sqrt(x * x + y + y) < 10) {
+    Point old = view.get_drag_start();
+    click(1, old.x, old.y);
+  }
 }
 
 void MapEditor::change_tool(Tool t) {
@@ -197,4 +195,8 @@ void MapView::drag_update(Point p) {
 void MapView::drag_end(Point p) {
   translate = old + p / zoom;
   old = {0};
+}
+
+Point MapView::get_drag_start() {
+  return old;
 }
