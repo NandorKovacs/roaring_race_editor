@@ -51,11 +51,16 @@ class MapView {
   void drag_end(Point p);
   Point get_drag_start();
 
+  void zoom_start();
+  void zoom_update(double scale);
+  void zoom_end();
+
  private:
   Point translate;
   double zoom;
 
-  Point old;
+  Point old_tr;
+  double old_zoom;
 };
 
 class MapEditor : public Gtk::DrawingArea {
@@ -85,6 +90,12 @@ class MapEditor : public Gtk::DrawingArea {
   void drag_start(double x, double y);
   void drag_update(double x, double y);
   void drag_end(double x, double y);
+
+  Glib::RefPtr<Gtk::GestureZoom> gesture_zoom;
+  void zoom_start(Gdk::EventSequence * e);
+  void zoom_scale(double scale);
+  void zoom_end(Gdk::EventSequence * e);
+
 };
 
 class ToolButton : public Gtk::Button {
