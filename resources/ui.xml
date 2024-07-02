@@ -20,22 +20,22 @@
                 <property name="orientation">horizontal</property>
                 <property name="spacing">25</property>
                 <child>
-                  <object class="GtkButton">
-                    <property name="label">A</property>
+                  <object class="GtkButton" id="tool-select">
+                    <property name="label">SELECT</property>
+                    <property name="height-request">50</property>
+                    <property name="width-request">50</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="tool-circle">
+                    <property name="label">CIRCLE</property>
                     <property name="height-request">50</property>
                     <property name="width-request">50</property>
                   </object>
                 </child>
                 <child>
                   <object class="GtkButton">
-                    <property name="label">B</property>
-                    <property name="height-request">50</property>
-                    <property name="width-request">50</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkButton">
-                    <property name="label">C</property>
+                    <property name="label">PLACEHOLDER</property>
                     <property name="height-request">50</property>
                     <property name="width-request">50</property>
                   </object>
