@@ -182,5 +182,4 @@ void MapView::drag_update(Point p) {
 void MapView::drag_end(Point p) {
   delta = {0};
   translate = translate + p;
-  
 }

@@ -1,5 +1,4 @@
 {
-  "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
   "C_Cpp.default.compileCommands": "build/compile_commands.json",
   "files.associations": {
     "cctype": "cpp",
@@ -88,4 +87,3 @@
     "coroutine": "cpp",
     "regex": "cpp"
   }
-}
