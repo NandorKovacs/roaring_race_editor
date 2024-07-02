@@ -7,6 +7,8 @@
 
 #include "geometry.h"
 
+// Editor
+
 Editor::Editor() : Gtk::Application("net.roaringmind.roaring_race_editor") {}
 
 Glib::RefPtr<Editor> Editor::create() {
@@ -19,6 +21,8 @@ void Editor::on_activate() {
   window->signal_hide().connect([window]() { delete window; });
   window->present();
 }
+
+// EditorWindow
 
 const std::vector<std::pair<std::string, Tool>> BUTTON_IDS = {
     {"tool-select", SELECT}, {"tool-circle", CIRCLE}};
@@ -45,14 +49,16 @@ EditorWindow* EditorWindow::create() {
                                                         "roaring_race_editor");
 }
 
+// MapEditor
+
 MapEditor::MapEditor(BaseObjectType* cobject,
                      const Glib::RefPtr<Gtk::Builder>& builder)
     : Gtk::DrawingArea(cobject),
       map(),
       view(),
       tool_state(new SelectState()),
-      gesture_click(Gtk::GestureClick::create()),
-      gesture_drag(Gtk::GestureDrag::create()) {
+      gesture_drag(Gtk::GestureDrag::create()),
+      gesture_zoom(Gtk::GestureZoom::create()) {
   map.insert(new Circle(0, 0, 100.0));
 
   set_draw_func(sigc::mem_fun(*this, &MapEditor::draw));
@@ -62,11 +68,6 @@ MapEditor::MapEditor(BaseObjectType* cobject,
   });
 
   {
-    gesture_click->signal_pressed().connect(
-        sigc::mem_fun(*this, &MapEditor::click));
-    add_controller(gesture_click);
-  }  // gesture click
-  {
     gesture_drag->signal_drag_begin().connect(
         sigc::mem_fun(*this, &MapEditor::drag_start));
     gesture_drag->signal_drag_update().connect(
@@ -75,15 +76,16 @@ MapEditor::MapEditor(BaseObjectType* cobject,
         sigc::mem_fun(*this, &MapEditor::drag_end));
     add_controller(gesture_drag);
   }
-}
 
-ToolButton::ToolButton(BaseObjectType* cobject,
-                       const Glib::RefPtr<Gtk::Builder>& builder)
-    : Gtk::Button(cobject) {}
-
-ToolButton* ToolButton::create(Glib::RefPtr<Gtk::Builder> builder,
-                               const Glib::ustring& id) {
-  return Gtk::Builder::get_widget_derived<ToolButton>(builder, id);
+  {
+    gesture_zoom->signal_begin().connect(
+        sigc::mem_fun(*this, &MapEditor::zoom_start));
+    gesture_zoom->signal_end().connect(
+        sigc::mem_fun(*this, &MapEditor::zoom_end));
+    gesture_zoom->signal_scale_changed().connect(
+        sigc::mem_fun(*this, &MapEditor::zoom_scale));
+    add_controller(gesture_zoom);
+  }
 }
 
 MapEditor* MapEditor::create(Glib::RefPtr<Gtk::Builder> builder) {
@@ -95,15 +97,20 @@ void MapEditor::draw(const Cairo::RefPtr<Cairo::Context>& cr, int width,
   cr->set_line_width(10);
   cr->set_source_rgb(1, 0, 0);
 
-  // maybe reimplement with cairo matrixes if they exist?
-  // pro: less hacky
-  // con: this way, the translation happens in MapView for drawing, and for
-  // clicking too
-  std::function<Point(Point)> fnc = std::bind(
-      &MapView::map_to_screen, &view, std::placeholders::_1, width, height);
+  Cairo::Matrix mx = cr->get_matrix();
+  Point translate = view.get_translate();
+  double zoom = view.get_zoom();
+
+  mx.translate(width / 2, height / 2);
+  mx.scale(zoom, zoom);
+  mx.translate(-width / 2, -height / 2);
+
+  mx.translate(translate.x + width / 2, translate.y + height / 2);
+
+  cr->set_matrix(mx);
 
   for (auto it = map.begin(); it != map.end(); ++it) {
-    (**it).draw(cr, fnc);
+    (**it).draw(cr);
   }
 
   cr->stroke();
@@ -113,18 +120,32 @@ void MapEditor::click(gint n_press, gdouble x, gdouble y) {
   tool_state->click(view.screen_to_map({x, y}, width, height));
 }
 
-void MapEditor::drag_start(gdouble x, gdouble y) {
-  std::cout << "start: " << x << " " << y << std::endl;
-}
+void MapEditor::drag_start(gdouble x, gdouble y) { view.drag_start(); }
 
 void MapEditor::drag_update(gdouble x, gdouble y) {
-  // std::cout << "update: " << x << " " << y << std::endl;
-  view.drag_update(view.screen_to_map({x, y}, width, height));
+  view.drag_update({x, y});
+  queue_draw();
 }
 
 void MapEditor::drag_end(gdouble x, gdouble y) {
-  std::cout << "end: " << x << " " << y << std::endl;
-  view.drag_end(view.screen_to_map({x, y}, width, height));
+  view.drag_end({x, y});
+  queue_draw();
+  if (std::sqrt(x * x + y + y) < 10) {
+    Point old = view.get_drag_start();
+    click(1, old.x, old.y);
+  }
+}
+
+void MapEditor::zoom_start(Gdk::EventSequence* e) { view.zoom_start(); }
+
+void MapEditor::zoom_scale(double scale) {
+  view.zoom_update(scale);
+  queue_draw();
+}
+
+void MapEditor::zoom_end(Gdk::EventSequence* e) {
+  view.zoom_end();
+  queue_draw();
 }
 
 void MapEditor::change_tool(Tool t) {
@@ -147,6 +168,19 @@ void MapEditor::change_tool(Tool t) {
   }
 }
 
+// ToolButton
+
+ToolButton::ToolButton(BaseObjectType* cobject,
+                       const Glib::RefPtr<Gtk::Builder>& builder)
+    : Gtk::Button(cobject) {}
+
+ToolButton* ToolButton::create(Glib::RefPtr<Gtk::Builder> builder,
+                               const Glib::ustring& id) {
+  return Gtk::Builder::get_widget_derived<ToolButton>(builder, id);
+}
+
+// ToolState
+
 ToolState::ToolState(Tool t) : t(t) {}
 Tool ToolState::type() { return t; }
 
@@ -161,7 +195,9 @@ void CircleState::click(Point p) {
   std::cout << "Circle: " << p.x << " " << p.y << std::endl;
 }
 
-MapView::MapView() : translate({0, 0}), zoom(1), delta({0}) {}
+// MapView
+
+MapView::MapView() : translate({0, 0}), zoom(1), old_tr({0}), old_zoom(0) {}
 
 Point MapView::map_to_screen(Point p, double width, double height) {
   Point center = {width / 2, height / 2};
@@ -174,12 +210,23 @@ Point MapView::screen_to_map(Point p, double width, double height) {
   return {res.x * -1, res.y};
 }
 
-void MapView::drag_update(Point p) {
-  delta = p;
-  std::cout << p.x << " " << p.y << std::endl;
-}
+void MapView::drag_start() { old_tr = translate; }
+
+void MapView::drag_update(Point p) { translate = old_tr + p / zoom; }
 
 void MapView::drag_end(Point p) {
-  delta = {0};
-  translate = translate + p;
+  translate = old_tr + p / zoom;
+  old_tr = {0};
 }
+
+void MapView::zoom_start() { old_zoom = zoom; }
+
+void MapView::zoom_update(double scale) { zoom = old_zoom * scale; }
+
+void MapView::zoom_end() { old_zoom = 0; }
+
+Point MapView::get_drag_start() { return old_tr; }
+
+Point MapView::get_translate() { return translate; }
+
+double MapView::get_zoom() { return zoom; }

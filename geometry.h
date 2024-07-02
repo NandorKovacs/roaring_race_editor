@@ -15,19 +15,20 @@ struct Point {
   Point operator/(double d);
   Point operator+(Point p);
   Point operator-(Point p);
+  friend std::ostream& operator<<(std::ostream& os, Point& point);
 };
 
 
 class Geometry {
  public:
-  virtual void draw(const Cairo::RefPtr<Cairo::Context>& cr, std::function<Point(Point)> view_func) = 0;
+  virtual void draw(const Cairo::RefPtr<Cairo::Context>& cr) = 0;
 };
 
 class Circle : public Geometry {
  public:
   Circle(double x, double y, double r);
   Circle(Point m, double r);
-  void draw(const Cairo::RefPtr<Cairo::Context>& cr, std::function<Point(Point)> view_func);
+  void draw(const Cairo::RefPtr<Cairo::Context>& cr);
  private:
   Point m; 
   double r;
